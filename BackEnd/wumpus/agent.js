@@ -10,6 +10,7 @@ var directions = [];
 var stench, breeze, died, scream, glitter, haveGold, remainingArrows;
 
 function sendInfo() {
+
     return {
         pathMap: knowledgeBase.pathMap(),
         wumpusMap: knowledgeBase.wumpusMap(),
@@ -286,6 +287,49 @@ function pitloopSituation() {
 
 }
 
+
+function isNorth(direction) {
+    return direction[0] == knowledgeBase.NORTH[0] && direction[1] == knowledgeBase.NORTH[1]
+}
+function isSouth(direction) {
+    return direction[0] == knowledgeBase.SOUTH[0] && direction[1] == knowledgeBase.SOUTH[1]
+}
+function isEast(direction) {
+    return direction[0] == knowledgeBase.EAST[0] && direction[1] == knowledgeBase.EAST[1]
+}
+function isWest(direction) {
+    return direction[0] == knowledgeBase.WEST[0] && direction[1] == knowledgeBase.WEST[1]
+}
+
+
+
+function changeDirection(from, to) {
+    if (isNorth(from)) {
+
+        if (isSouth(to)) { turnBackward() }
+        if (isEast(to)) { turn(right) }
+        if (isWest(to)) { turn(left) }
+    }
+    if (isSouth(from)) {
+        if (isNorth(to)) { turnBackward() }
+
+        if (isEast(to)) { turn(left) }
+        if (isWest(to)) { turn(right) }
+    }
+    if (isEast(from)) {
+        if (isNorth(to)) { turn(left) }
+        if (isSouth(to)) { turn(right) }
+
+        if (isWest(to)) { turnBackward() }
+    }
+    if (isWest(from)) {
+        if (isNorth(to)) { turn(right) }
+        if (isSouth(to)) { turn(left) }
+        if (isEast(to)) { turnBackward() }
+    }
+}
+
+
 function loopBreak() {
     if (remainingArrows <= 0) return false;
     let valid_squares = validSquares(position)
@@ -314,22 +358,18 @@ function loopBreak() {
     let col = probableWumpusSquare[1] - position[1]
 
     if (row == 0 && col == 1) {
-        direction = knowledgeBase.NORTH
-        directions.push(direction);
+        changeDirection(direction, knowledgeBase.NORTH)
     }
     else if (row == 0 && col == -1) {
-        direction = knowledgeBase.SOUTH
-        directions.push(direction);
+        changeDirection(direction, knowledgeBase.SOUTH)
     }
 
     else if (row == 1 && col == 0) {
-        direction = knowledgeBase.EAST
-        directions.push(direction);
+        changeDirection(direction, knowledgeBase.EAST)
     }
 
     else if (row == -1 && col == 0) {
-        direction = knowledgeBase.WEST
-        directions.push(direction);
+        changeDirection(direction, knowledgeBase.WEST)
     }
 
 
@@ -337,6 +377,26 @@ function loopBreak() {
     return true
 
 }
+
+
+function printBacktrackPossible(riskFactor) {
+    let moves = knowledgeBase.moves()
+    for (let i = 0; i < moves.length; i++) {
+        let squares = validSquares(moves[i])
+
+        let possible = false;
+        for (let j = 0; j < squares.length; j++) {
+            if (knowledgeBase.askPath(squares[j]) == 0 && knowledgeBase.askPit(squares[j]) + knowledgeBase.askWumpus(squares[j]) <= riskFactor) {
+
+                console.log(`[${moves[i]}]:Possible ==> [${squares[j]}]`);
+                possible = true
+                break;
+            }
+        }
+        if (!possible) console.log(`[${moves[i]}]:Not Possible`);
+    }
+}
+
 
 function play() {
     if (knowledgeBase.askGlitter([position[0], position[1]])) {
@@ -388,29 +448,32 @@ function play() {
             }
         }
 
-
-
-
-
-
         console.log("\tforwardDanger:" + forwardScore + "\n\trightDanger:" + rightScore + "\n\tleftDanger:" + leftScore);
         // if a move forward/right/left is less than the risk factor, make the move.
 
-        // if (forwardScore == Number.MAX_VALUE && leftScore == Number.MAX_VALUE && rightScore == Number.MAX_VALUE) {
-        //     console.log('Code is here');
-        //     let randomMove = Math.floor(Math.random() * 3) + 1
-        //     if (randomMove == 2) {
-        //         turn(left)
-        //     }
-        //     if (randomMove == 3) {
-        //         turn(right)
-        //     }
-        //     move();
-        //     movePossible = true
-        //     knowledgeBase.print();
-        //     return;
-        // }
+        if (forwardScore == Number.MAX_VALUE && leftScore == Number.MAX_VALUE && rightScore == Number.MAX_VALUE) {
+            console.log('Code is here');
+            // let randomMove = Math.floor(Math.random() * 3) + 1
+            // if (randomMove == 2) {
+            //     turn(left)
+            // }
+            // if (randomMove == 3) {
+            //     turn(right)
+            // }
+            move();
 
+            movePossible = true
+            knowledgeBase.print();
+            printBacktrackPossible(riskFactor)
+            console.log(riskFactor);
+            console.log('Wumpus Map');
+            knowledgeBase.printMap(knowledgeBase.wumpusMap());
+            console.log('Pit Map');
+            knowledgeBase.printMap(knowledgeBase.pitMap());
+            console.log('Path Map');
+            knowledgeBase.printMap(knowledgeBase.pathMap());
+            return;
+        }
 
         if (forwardScore <= riskFactor && forwardScore <= leftScore && forwardScore <= rightScore) {
             let x = position[0] + direction[0]
@@ -420,8 +483,13 @@ function play() {
 
                 movePossible = true
                 knowledgeBase.print();
+                printBacktrackPossible(riskFactor)
+                console.log(riskFactor);
+                console.log('Wumpus Map');
                 knowledgeBase.printMap(knowledgeBase.wumpusMap());
+                console.log('Pit Map');
                 knowledgeBase.printMap(knowledgeBase.pitMap());
+                console.log('Path Map');
                 knowledgeBase.printMap(knowledgeBase.pathMap());
                 return;
             }
@@ -437,8 +505,13 @@ function play() {
                 move();
                 movePossible = true
                 knowledgeBase.print();
+                printBacktrackPossible(riskFactor)
+                console.log(riskFactor);
+                console.log('Wumpus Map');
                 knowledgeBase.printMap(knowledgeBase.wumpusMap());
+                console.log('Pit Map');
                 knowledgeBase.printMap(knowledgeBase.pitMap());
+                console.log('Path Map');
                 knowledgeBase.printMap(knowledgeBase.pathMap());
                 return;
             }
@@ -453,8 +526,13 @@ function play() {
                 move();
                 movePossible = true
                 knowledgeBase.print();
+                printBacktrackPossible(riskFactor)
+                console.log(riskFactor);
+                console.log('Wumpus Map');
                 knowledgeBase.printMap(knowledgeBase.wumpusMap());
+                console.log('Pit Map');
                 knowledgeBase.printMap(knowledgeBase.pitMap());
+                console.log('Path Map');
                 knowledgeBase.printMap(knowledgeBase.pathMap());
                 return;
             }
@@ -489,7 +567,6 @@ function play() {
 
 
 }
-
 
 function equals(array1, array2) {
     if (array1.length == array2.length) {

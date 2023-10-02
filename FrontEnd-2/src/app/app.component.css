@@ -12,9 +12,10 @@ nav button {
 /* styles.css */
 
 .content-container {
-  background-color: #BFFFCD; /* Replace with your desired background color */
+  background-color: #BFFFCD;
+  /* Replace with your desired background color */
   /* padding: 20px;  */
-  
+
   /* Optional: Add padding to your container */
 }
 
@@ -80,9 +81,11 @@ nav button:hover:not(.active) {
 
 /* Define the class for resizable images */
 .resizable-image {
-  width: 100%; /* Ensure the image fits within its container */
+  width: 100%;
+  /* Ensure the image fits within its container */
   /* max-height: 100%;  */
-  height: auto;/* Ensure the image fits within its container */
+  height: auto;
+  /* Ensure the image fits within its container */
 }
 
 
@@ -186,4 +189,11 @@ nav button:hover:not(.active) {
   justify-content: center;
   align-items: center;
   z-index: 2;
+}
+
+/* Add this CSS to your existing CSS file */
+.status-container {
+  flex: 1; /* Adjust the flex value to control the size */
+  border: 1px solid #ccc;
+  padding: 5px; /* Adjust the padding to control the spacing inside the container */
 }
